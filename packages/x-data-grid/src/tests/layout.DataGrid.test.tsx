@@ -32,18 +32,9 @@ describe('<DataGrid /> - Layout & warnings', () => {
 
   const baselineProps = {
     rows: [
-      {
-        id: 0,
-        brand: 'Nike',
-      },
-      {
-        id: 1,
-        brand: 'Adidas',
-      },
-      {
-        id: 2,
-        brand: 'Puma',
-      },
+      { id: 0, brand: 'Nike' },
+      { id: 1, brand: 'Adidas' },
+      { id: 2, brand: 'Puma' },
     ],
     columns: [{ field: 'brand' }],
   };
@@ -277,13 +268,13 @@ describe('<DataGrid /> - Layout & warnings', () => {
           },
         ];
 
-        const { getAllByRole } = render(
+        render(
           <div style={{ width: 300, height: 300 }}>
             <DataGrid columns={columns} rows={rows} />
           </div>,
         );
 
-        getAllByRole('columnheader').forEach((col: HTMLElement) => {
+        screen.getAllByRole('columnheader').forEach((col: HTMLElement) => {
           expect(col).toHaveInlineStyle({ width: '100px' });
         });
       });
@@ -313,13 +304,13 @@ describe('<DataGrid /> - Layout & warnings', () => {
           },
         ];
 
-        const { getAllByRole } = render(
+        render(
           <div style={{ width: 300, height: 300 }}>
             <DataGrid columns={columns} rows={rows} />
           </div>,
         );
 
-        getAllByRole('columnheader').forEach((col: HTMLElement, index: number) => {
+        screen.getAllByRole('columnheader').forEach((col: HTMLElement, index: number) => {
           expect(col).toHaveInlineStyle({ width: `${colWidthValues[index]}px` });
         });
       });
@@ -836,6 +827,100 @@ describe('<DataGrid /> - Layout & warnings', () => {
       const expectedHeight = height - columnHeaderHeight - scrollbarSize;
       expect(overlayWrapper).toHaveComputedStyle({ height: `${expectedHeight}px` });
     });
+
+    it('should respect the maxHeight of the flex parent', () => {
+      render(
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: 200,
+          }}
+        >
+          <DataGrid
+            columns={[{ field: 'id' }]}
+            rows={[{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }, { id: 6 }]}
+          />
+        </div>,
+      );
+
+      expect(grid('root')!.offsetHeight).to.equal(200);
+    });
+
+    it('should respect the minHeight of the flex parent', () => {
+      render(
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 600,
+          }}
+        >
+          <DataGrid columns={[{ field: 'id' }]} rows={[{ id: 1 }]} />
+        </div>,
+      );
+
+      expect(grid('root')!.offsetHeight).to.equal(600);
+    });
+
+    it('should update the height on rows count change', async () => {
+      const rowHeight = 52;
+      const columnHeaderHeight = 56;
+      const borderWidth = 1;
+
+      function Test() {
+        const [rowCount, setRowCount] = React.useState(1);
+
+        const rows = React.useMemo(
+          () => Array.from({ length: rowCount }, (_, id) => ({ id })),
+          [rowCount],
+        );
+        return (
+          <div>
+            <button onClick={() => setRowCount((prev) => prev + 1)}>Add row</button>
+            <button onClick={() => setRowCount((prev) => prev - 1)}>Delete row</button>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                maxHeight: 250,
+              }}
+            >
+              <DataGrid
+                columns={[{ field: 'id' }]}
+                rows={rows}
+                hideFooter
+                rowHeight={rowHeight}
+                columnHeaderHeight={columnHeaderHeight}
+              />
+            </div>
+          </div>
+        );
+      }
+      const { user } = render(<Test />);
+
+      expect(grid('root')!.offsetHeight).to.equal(columnHeaderHeight + rowHeight + 2 * borderWidth);
+
+      await user.click(screen.getByText('Add row'));
+      await user.click(screen.getByText('Add row'));
+      expect(grid('root')!.offsetHeight).to.equal(
+        columnHeaderHeight + 3 * rowHeight + 2 * borderWidth,
+      );
+
+      await user.click(screen.getByText('Add row'));
+      expect(grid('root')!.offsetHeight).to.equal(250);
+
+      await user.click(screen.getByText('Delete row'));
+      expect(grid('root')!.offsetHeight).to.equal(
+        columnHeaderHeight + 3 * rowHeight + 2 * borderWidth,
+      );
+
+      await user.click(screen.getByText('Delete row'));
+      await user.click(screen.getByText('Delete row'));
+      expect(grid('root')!.offsetHeight).to.equal(
+        columnHeaderHeight + 1 * rowHeight + 2 * borderWidth,
+      );
+    });
   });
 
   describe('warnings', () => {
@@ -887,7 +972,7 @@ describe('<DataGrid /> - Layout & warnings', () => {
 
   describe('localeText', () => {
     it('should replace the density selector button label text to "Size"', () => {
-      const { getByText } = render(
+      render(
         <div style={{ width: 300, height: 300 }}>
           <DataGrid
             {...baselineProps}
@@ -899,7 +984,7 @@ describe('<DataGrid /> - Layout & warnings', () => {
         </div>,
       );
 
-      expect(getByText('Size')).not.to.equal(null);
+      expect(screen.getByText('Size')).not.to.equal(null);
     });
 
     it('should support translations in the theme', () => {
@@ -927,23 +1012,21 @@ describe('<DataGrid /> - Layout & warnings', () => {
           </div>
         );
       }
-      const { setProps, getByText } = render(
-        <TestCase localeText={{ toolbarDensity: 'Density' }} />,
-      );
-      expect(getByText('Density')).not.to.equal(null);
+      const { setProps } = render(<TestCase localeText={{ toolbarDensity: 'Density' }} />);
+      expect(screen.getByText('Density')).not.to.equal(null);
       setProps({ localeText: { toolbarDensity: 'Densidade' } });
-      expect(getByText('Densidade')).not.to.equal(null);
+      expect(screen.getByText('Densidade')).not.to.equal(null);
     });
   });
 
   describe('non-strict mode', () => {
-    const renderer = createRenderer({ strict: false });
+    const { render: innerRender } = createRenderer({ strict: false });
 
     it('should render in JSDOM', function test() {
       if (!/jsdom/.test(window.navigator.userAgent)) {
         this.skip(); // Only run in JSDOM
       }
-      renderer.render(
+      innerRender(
         <div style={{ width: 300, height: 300 }}>
           <DataGrid {...baselineProps} />
         </div>,

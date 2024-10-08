@@ -71,6 +71,7 @@ export const useTreeViewFocus: TreeViewPlugin<UseTreeViewFocusSignature> = ({
     }
 
     setFocusedItemId(itemId);
+
     if (params.onItemFocus) {
       params.onItemFocus(event, itemId);
     }
@@ -90,9 +91,7 @@ export const useTreeViewFocus: TreeViewPlugin<UseTreeViewFocusSignature> = ({
 
     const itemMeta = instance.getItemMeta(state.focusedItemId);
     if (itemMeta) {
-      const itemElement = document.getElementById(
-        instance.getTreeItemIdAttribute(state.focusedItemId, itemMeta.idAttribute),
-      );
+      const itemElement = instance.getItemDOMElement(state.focusedItemId);
       if (itemElement) {
         itemElement.blur();
       }

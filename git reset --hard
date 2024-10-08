@@ -1,0 +1,62 @@
+[1mdiff --git a/packages/x-date-pickers/src/DesktopDatePicker/DesktopDatePicker.tsx b/packages/x-date-pickers/src/DesktopDatePicker/DesktopDatePicker.tsx[m
+[1mindex 6fede2f69..80dcdbe55 100644[m
+[1m--- a/packages/x-date-pickers/src/DesktopDatePicker/DesktopDatePicker.tsx[m
+[1m+++ b/packages/x-date-pickers/src/DesktopDatePicker/DesktopDatePicker.tsx[m
+[36m@@ -72,6 +72,7 @@[m [mconst DesktopDatePicker = React.forwardRef(function DesktopDatePicker<[m
+     slotProps: {[m
+       ...defaultizedProps.slotProps,[m
+       field: (ownerState: any) => ({[m
+[32m+[m[32m        format: 'toto',[m
+         ...resolveComponentProps(defaultizedProps.slotProps?.field, ownerState),[m
+         ...extractValidationProps(defaultizedProps),[m
+         ref,[m
+[1mdiff --git a/packages/x-date-pickers/src/internals/hooks/useDesktopPicker/useDesktopPicker.types.ts b/packages/x-date-pickers/src/internals/hooks/useDesktopPicker/useDesktopPicker.types.ts[m
+[1mindex 494e25e6b..5872bea81 100644[m
+[1m--- a/packages/x-date-pickers/src/internals/hooks/useDesktopPicker/useDesktopPicker.types.ts[m
+[1m+++ b/packages/x-date-pickers/src/internals/hooks/useDesktopPicker/useDesktopPicker.types.ts[m
+[36m@@ -78,12 +78,14 @@[m [mexport interface ExportedUseDesktopPickerSlotProps<[m
+     ExportedPickersLayoutSlotProps<TDate | null, TDate, TView>,[m
+     UseClearableFieldSlotProps {[m
+   field?: SlotComponentPropsFromProps<[m
+[31m-    BaseSingleInputFieldProps<[m
+[31m-      TDate | null,[m
+[31m-      TDate,[m
+[31m-      FieldSection,[m
+[31m-      TEnableAccessibleFieldDOMStructure,[m
+[31m-      unknown[m
+[32m+[m[32m    Partial<[m
+[32m+[m[32m      BaseSingleInputFieldProps<[m
+[32m+[m[32m        TDate | null,[m
+[32m+[m[32m        TDate,[m
+[32m+[m[32m        FieldSection,[m
+[32m+[m[32m        TEnableAccessibleFieldDOMStructure,[m
+[32m+[m[32m        unknown[m
+[32m+[m[32m      >[m
+     >,[m
+     {},[m
+     UsePickerProps<TDate | null, TDate, any, any, any, any>[m
+[1mdiff --git a/packages/x-date-pickers/src/internals/models/fields.ts b/packages/x-date-pickers/src/internals/models/fields.ts[m
+[1mindex ec2b39202..c732068ed 100644[m
+[1m--- a/packages/x-date-pickers/src/internals/models/fields.ts[m
+[1m+++ b/packages/x-date-pickers/src/internals/models/fields.ts[m
+[36m@@ -2,7 +2,7 @@[m [mimport * as React from 'react';[m
+ import type { UseFieldInternalProps } from '../hooks/useField';[m
+ import { FieldSection, PickerValidDate } from '../../models';[m
+ import type { ExportedUseClearableFieldProps } from '../../hooks/useClearableField';[m
+[31m-import { MakeRequired } from './helpers';[m
+[32m+[m[32mimport { MakeOptional, MakeRequired } from './helpers';[m
+ [m
+ export interface BaseFieldProps<[m
+   TValue,[m
+[36m@@ -11,7 +11,10 @@[m [mexport interface BaseFieldProps<[m
+   TEnableAccessibleFieldDOMStructure extends boolean,[m
+   TError,[m
+ > extends MakeRequired<[m
+[31m-      UseFieldInternalProps<TValue, TDate, TSection, TEnableAccessibleFieldDOMStructure, TError>,[m
+[32m+[m[32m      MakeOptional<[m
+[32m+[m[32m        UseFieldInternalProps<TValue, TDate, TSection, TEnableAccessibleFieldDOMStructure, TError>,[m
+[32m+[m[32m        'format'[m
+[32m+[m[32m      >,[m
+       'value'[m
+     >,[m
+     ExportedUseClearableFieldProps {[m
